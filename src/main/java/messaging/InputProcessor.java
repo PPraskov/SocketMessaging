@@ -94,11 +94,16 @@ class InputProcessor {
 
     private String readInputStream(InputStream inputStream) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
-        while (inputStream.available() > 0) {
-            char c = (char) inputStream.read();
-            stringBuilder.append(c);
+        boolean read = false;
+        while (!read){
+            if (inputStream.available() == 0){
+                continue;
+            }
+            while (inputStream.available() > 0) {
+                stringBuilder.append((char) inputStream.read());
+            }
+            read = true;
         }
         return stringBuilder.toString();
-
     }
 }

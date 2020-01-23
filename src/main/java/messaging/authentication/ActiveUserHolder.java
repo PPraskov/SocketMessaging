@@ -11,18 +11,18 @@ import java.util.concurrent.ConcurrentMap;
 
 class ActiveUserHolder {
 
-    private static final ConcurrentMap<String,User> activeUsers = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, User> activeUsers = new ConcurrentHashMap<>();
 
     ActiveUserHolder() {
     }
 
-    void addUser(User user){
+    void addUser(User user) {
         if (!checkIfUserPresent(user.getUsername())) {
             activeUsers.put(user.getUsername(), user);
         }
     }
 
-    void removeUser(User user){
+    void removeUser(User user) {
         if (checkIfUserPresent(user.getUsername())) {
             activeUsers.remove(user);
             try {
@@ -34,17 +34,17 @@ class ActiveUserHolder {
         }
     }
 
-    boolean checkIfUserPresent(String username){
-       return activeUsers.containsKey(username);
+    boolean checkIfUserPresent(String username) {
+        return activeUsers.containsKey(username);
     }
 
-    Map<String, User> getActiveUsers(){
+    Map<String, User> getActiveUsers() {
         return Collections.unmodifiableMap(new HashMap<>(activeUsers));
     }
 
-    User getUser(String username){
-        if (checkIfUserPresent(username)){
-          return   activeUsers.get(username);
+    User getUser(String username) {
+        if (checkIfUserPresent(username)) {
+            return activeUsers.get(username);
         }
         return null;
     }

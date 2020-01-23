@@ -22,7 +22,7 @@ class OutputProcessor{
         try {
             if (receiver == null){
                 OutputStream outputStream = message.getSender().getSocket().getOutputStream();
-                outputStream.write("User not active!".getBytes());
+                outputStream.write("from = Messaging Server\nmessage =User not found!".getBytes());
                 outputStream.flush();
             }
             else {

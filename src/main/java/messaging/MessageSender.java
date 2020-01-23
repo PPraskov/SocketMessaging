@@ -17,4 +17,8 @@ class MessageSender extends Thread {
             processor.sendMessage();
         }
     }
+
+    void stopRunning(){
+        this.toRun = false;
+    }
 }

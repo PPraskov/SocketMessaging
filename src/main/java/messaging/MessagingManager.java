@@ -3,11 +3,14 @@ package messaging;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class MessagingManager {
 
     private ServerSocket serverSocket;
     private boolean toRun = false;
+    private SocketInputListener inputListener;
+    private MessageSender sender;
 
     public MessagingManager() {
     }
@@ -25,10 +28,11 @@ public class MessagingManager {
 
     private void execute() {
         try {
-            SocketInputListener listener = new SocketInputListener();
-            MessageSender sender = new MessageSender();
-            listener.start();
-            sender.start();
+            this.inputListener = new SocketInputListener();
+            this.sender = new MessageSender();
+            this.inputListener.start();
+            this.sender.start();
+            System.out.println("App is running!");
             while (this.toRun) {
                 Socket socket = this.serverSocket.accept();
                 new SocketCommit(socket).start();
@@ -38,5 +42,15 @@ public class MessagingManager {
         }
     }
 
+    public void stopApplication(){
+        try {
+        this.toRun = false;
+        this.inputListener.stopRunning();
+        this.sender.stopRunning();
+            this.serverSocket.close();
+        } catch (IOException e) {
+            System.out.println("Server socket is closed!");
+        }
+    }
 
 }
