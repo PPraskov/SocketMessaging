@@ -1,4 +1,4 @@
-package messaging;
+package messaging.util;
 
 public class IllegalMessage extends RuntimeException {
 

@@ -1,4 +1,4 @@
-package messaging;
+package messaging.util;
 
 public class IllegalAuthorization extends RuntimeException {
 

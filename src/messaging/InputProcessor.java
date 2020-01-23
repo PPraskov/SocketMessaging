@@ -1,6 +1,8 @@
 package messaging;
 
 import messaging.authentication.AuthenticationManager;
+import messaging.util.IllegalAuthorization;
+import messaging.util.IllegalMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +28,7 @@ class InputProcessor {
 
     Message mapMessage(Socket socket) {
         try {
-
+            boolean clientRequireAuth = false;
             Map<String, String> map = messageToMap(socket.getInputStream());
             String sender = null;
             String receiver = null;
@@ -41,33 +43,36 @@ class InputProcessor {
                     String token = String.format("authentication = %s", u.getToken());
                     socket.getOutputStream().write(token.getBytes());
                     socket.getOutputStream().flush();
-                    throw new IllegalMessage("Sending Authorization");
+                    clientRequireAuth = true;
                 }
             } else {
                 throw new IllegalMessage("No sender!");
             }
-            if (map.containsKey("to")) {
-                receiver = map.get("to");
-            } else {
-                throw new IllegalMessage("No receiver!");
-            }
-            if (map.containsKey("auth")) {
-                auth = map.get("auth");
-                user = new User(sender, auth, socket);
-                boolean authentication = authenticationManager.authenticate(user);
-                if (!authentication) {
-                    throw new IllegalAuthorization();
+            if (!clientRequireAuth) {
+                if (map.containsKey("to")) {
+                    receiver = map.get("to");
+                } else {
+                    throw new IllegalMessage("No receiver!");
                 }
-            } else {
+                if (map.containsKey("auth")) {
+                    auth = map.get("auth");
+                    user = new User(sender, auth, socket);
+                    boolean authentication = authenticationManager.authenticate(user);
+                    if (!authentication) {
+                        throw new IllegalAuthorization();
+                    }
+                } else {
 
+                }
+                if (map.containsKey("message")) {
+                    messageStr = map.get("message");
+                }
+
+                Message message = new Message(user, receiver);
+                message.setMessage(messageStr);
+                message.setAuth(auth);
+                return message;
             }
-            if (map.containsKey("message")) {
-                messageStr = map.get("message");
-            }
-            Message message = new Message(user, receiver);
-            message.setMessage(messageStr);
-            message.setAuth(auth);
-            return message;
 
         } catch (IOException | IllegalMessage | IllegalAuthorization e) {
             e.printStackTrace();
