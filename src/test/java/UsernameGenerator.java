@@ -4,8 +4,8 @@ import java.util.stream.Collectors;
 public class UsernameGenerator {
 
     private static int counter;
-    private static List<String> usernames;
-    private static Object lock;
+    private static final List<String> usernames;
+    private static final Object lock;
     private static int maxNames;
     private static boolean ready;
 
@@ -17,7 +17,7 @@ public class UsernameGenerator {
     }
 
     public String getUsername() {
-        String result = null;
+        String result;
         Random random = new Random();
         StringBuilder stringBuilder = new StringBuilder();
         while (stringBuilder.length() < 10) {
@@ -29,21 +29,23 @@ public class UsernameGenerator {
             stringBuilder.append(c);
         }
         result = stringBuilder.toString().trim();
-
+        boolean rec = false;
         synchronized (usernames) {
             if (!usernames.contains(result)) {
                 usernames.add(result);
                 counter++;
                 synchronized (lock) {
-                    if (counter == maxNames) {
+                    if (counter >= maxNames) {
                         ready = true;
                         lock.notifyAll();
                     }
                 }
             } else {
-                result = getUsername();
+                rec = true;
             }
         }
+        if (rec)
+            result = getUsername();
         return result;
     }
 
@@ -51,7 +53,7 @@ public class UsernameGenerator {
         if (!ready) {
             synchronized (lock) {
                 try {
-                    lock.wait();
+                    lock.wait(300);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

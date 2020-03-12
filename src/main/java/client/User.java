@@ -86,7 +86,13 @@ public class User {
         this.messageListener.stopRunning();
     }
 
-    Object authCondition(){
+    Object authCondition() {
         return authCondition;
+    }
+
+    public void sendMessages(String[] toArr, String[] messageArr) throws IOException {
+        for (int i = 0; i < toArr.length; i++) {
+            sendMessage(toArr[i],messageArr[i]);
+        }
     }
 }

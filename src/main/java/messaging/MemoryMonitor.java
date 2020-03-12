@@ -4,7 +4,7 @@ public class MemoryMonitor extends Thread {
 
     private long heapMaxMemory;
     private final Object lock;
-    private volatile boolean lockFlag;
+    private boolean lockFlag;
 
     public MemoryMonitor() {
         this.setDaemon(true);

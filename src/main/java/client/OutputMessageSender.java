@@ -34,5 +34,10 @@ class OutputMessageSender {
         outputStream.write(messageToStr.getBytes());
         outputStream.flush();
         this.user.getSentMessages().addMessage(messageSending);
-    }
+       try {
+           Thread.sleep(50);
+       } catch (InterruptedException e) {
+           e.printStackTrace();
+       }
+   }
 }

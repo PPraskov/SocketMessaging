@@ -1,9 +1,7 @@
 import client.User;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class UserThreadTest extends Thread {
@@ -28,10 +26,12 @@ public class UserThreadTest extends Thread {
     private void startTalking(final int count) {
         int counter = 0;
         StringBuilder stringBuilder = new StringBuilder();
+        String[] toArr = new String[count];
+        String[] messageArr = new String[count];
         do {
             Random random = new Random();
             int length = random.nextInt(16)+5;
-            String message = null;
+            String message;
             stringBuilder.setLength(0);
             while (stringBuilder.length() < length) {
                 int i = random.nextInt(74) + 48;
@@ -42,15 +42,16 @@ public class UserThreadTest extends Thread {
                 stringBuilder.append(c);
 
             }
-            try {
-                message = stringBuilder.toString().trim();
-                this.user.sendMessage(this.usernames.get(random.nextInt(this.usernames.size())), message);
-                counter++;
-                Thread.sleep(50);
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
-            }
+            message = stringBuilder.toString().trim();
+            toArr[counter] = this.usernames.get(random.nextInt(this.usernames.size()));
+            messageArr[counter] = message;
+            counter++;
         } while (counter < count);
+        try {
+            this.user.sendMessages(toArr,messageArr);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void initialize() {
