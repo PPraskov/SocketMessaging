@@ -1,3 +1,6 @@
+import client.MessageReceiving;
+import client.MessageSending;
+import client.User;
 import messaging.MessagingManager;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -7,7 +10,9 @@ import org.junit.Test;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class SocketTesting {
 
@@ -23,8 +28,7 @@ public class SocketTesting {
         Constructor c = declaredConstructors[0];
         Object o = c.newInstance();
         manager = (MessagingManager) o;
-        Method initializeAndStart = aClass.getMethod("initializeAndStart");
-        Runner runner = new Runner(o, initializeAndStart, null);
+        Runner runner = new Runner(o, null);
         new Thread(runner).start();
     }
 
@@ -43,22 +47,20 @@ public class SocketTesting {
     public void testTwoGuysChatting() {
         boolean passed = false;
         try {
-             TestUser user1 = new TestUser("Papi");
-             user1.requireAuth();
-             TestUser user2 = new TestUser("Nick");
-             user2.requireAuth();
-
-            String messageToSecond = "testToSecond";
-            String messageToFirst = "TestToFirst";
+            User user1 = new User("Papi");
+            User user2 = new User("Nick");
+            String messageToSecond = "testTo " + user2.getName();
+            String messageToFirst = "TestTo " + user1.getName();
             user1.sendMessage(user2.getName(), messageToSecond);
             user2.sendMessage(user1.getName(), messageToFirst);
-            TestMessageReceiving fromFirst = user2.receiveMessage();
-            TestMessageReceiving fromSecond = user1.receiveMessage();
+            List<MessageReceiving> user2Inbox = user2.getInbox().getAllMessages();
+            List<MessageReceiving> user1Inbox = user1.getInbox().getAllMessages();
+            MessageReceiving testFromFirst = new MessageReceiving(user1.getName(), messageToSecond);
+            MessageReceiving testFromSecond = new MessageReceiving(user2.getName(), messageToFirst);
+            user1.stopListening();
+            user2.stopListening();
 
-            TestMessageReceiving testFromFirst = new TestMessageReceiving(user1.getName(), messageToSecond);
-            TestMessageReceiving testFromSecond = new TestMessageReceiving(user2.getName(), messageToFirst);
-
-            if (fromFirst.equals(testFromFirst) && fromSecond.equals(testFromSecond)) {
+            if (user2Inbox.get(0).equals(testFromFirst) && user1Inbox.get(0).equals(testFromSecond)) {
                 passed = true;
             }
         } catch (Exception e) {
@@ -70,18 +72,45 @@ public class SocketTesting {
     @Test
     public void otherGuyNotActive() {
         try {
-            TestUser user1 = new TestUser("Bumba");
-            user1.requireAuth();
+            User user1 = new User("Bumba");
             user1.sendMessage("nonExistent", "do you even exist?");
-            TestMessageReceiving messageReceiving = user1.receiveMessage();
-            TestMessageReceiving messageReceivingTest = new TestMessageReceiving("Messaging Server", "User not found!");
+            List<MessageReceiving> user1Inbox = user1.getInbox().getAllMessages();
+            MessageReceiving messageReceivingTest = new MessageReceiving("Messaging Server", "User not found!");
+            user1.stopListening();
             boolean passed = false;
-            if (messageReceiving.equals(messageReceivingTest)) {
+            if (user1Inbox.get(0).equals(messageReceivingTest)) {
                 passed = true;
             }
             Assert.assertTrue("Fucked up!", passed);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean checkMessages(List<MessageSending> tms, List<List<User>> users) {
+        boolean ok = true;
+        outer:for (MessageSending message: tms
+             ) {
+            String to = message.getTo();
+            String messageStr = message.getMessage();
+            for (List<User> usersList: users
+                 ) {
+                for (User user: usersList
+                     ) {
+                    if (user.getName().equals(to)){
+                        List<MessageReceiving> inbox = user.getInbox().getAllMessages();
+                        for (MessageReceiving messageReceiving: inbox
+                             ) {
+                            if (messageStr.equals(messageReceiving.getMessage())){
+                                continue outer;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return false;
+        }
+        return ok;
     }
 }

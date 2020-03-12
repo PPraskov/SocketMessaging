@@ -5,7 +5,6 @@ class Message {
     private final User sender;
     private final String receiver;
     private String message;
-    private String auth;
 
     Message(User sender, String receiver) {
         this.sender = sender;
@@ -28,18 +27,13 @@ class Message {
         return receiver;
     }
 
-    String getAuth() {
-        return auth;
+    String convertToString(){
+       String message = String.format("from = %s", getSender().getUsername()) + System.lineSeparator() +
+                String.format("message = %s", getMessage()) + System.lineSeparator();
+       return String.format("%d;%s",getMessageLength(message),message);
     }
 
-    void setAuth(String auth) {
-        this.auth = auth;
-    }
-
-    String convertToString(User receiver){
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(String.format("from = %s",getSender().getUsername())).append(System.lineSeparator());
-        stringBuilder.append(String.format("message = %s",getMessage())).append(System.lineSeparator());
-        return stringBuilder.toString().trim();
+    private int getMessageLength(String message){
+        return message.getBytes().length;
     }
 }

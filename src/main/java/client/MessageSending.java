@@ -1,11 +1,14 @@
-public class TestMessageSending {
+package client;
+
+public class MessageSending {
 
     private final String from;
     private final String auth;
     private final String to;
     private final String message;
+    private int byteSize;
 
-    public TestMessageSending(TestUser user , String to, String message) {
+    public MessageSending(User user , String to, String message) {
         this.from = user.getName();
         this.auth = user.getAuth();
         this.to = to;
@@ -35,6 +38,9 @@ public class TestMessageSending {
         stringBuilder.append(String.format("auth =%s\n",this.auth));
         stringBuilder.append(String.format("to =%s\n",this.to));
         stringBuilder.append(String.format("message =%s",this.message.trim()));
-        return stringBuilder.toString();
+        String message = stringBuilder.toString();
+        this.byteSize = message.getBytes().length;
+        String result = String.format("%d;%s",this.byteSize,message);
+        return result;
     }
 }

@@ -5,6 +5,7 @@ import messaging.authentication.AuthenticationManager;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 class SocketInputListener extends Thread {
@@ -27,10 +28,8 @@ class SocketInputListener extends Thread {
                     InputStream inputStream = user.getSocket().getInputStream();
                     if (inputStream.available() > 0) {
                         InputProcessor processor = new InputProcessor();
-                        Message message = processor.mapMessage(user.getSocket());
-                        if (message != null) {
-                            queue.addMessage(message);
-                        }
+                        List<Message> messages = processor.mapMessage(user.getSocket());
+                        queue.addAllMessages(messages);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

@@ -1,13 +1,15 @@
 package messaging;
 
 import messaging.authentication.AuthenticationManager;
-import messaging.util.IllegalAuthorization;
-import messaging.util.IllegalMessage;
+import messaging.exception.IllegalAuthorization;
+import messaging.exception.IllegalMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class InputProcessor {
@@ -26,58 +28,60 @@ class InputProcessor {
         return null;
     }
 
-    Message mapMessage(Socket socket) {
+    List<Message> mapMessage(Socket socket) {
+        List<Message> messages = new ArrayList<>();
         try {
-            boolean clientRequireAuth = false;
-            Map<String, String> map = messageToMap(socket.getInputStream());
-            String sender = null;
-            String receiver = null;
-            String auth = null;
-            String messageStr = null;
-            User user = null;
-            AuthenticationManager authenticationManager = new AuthenticationManager();
-            if (map.containsKey("from")) {
-                sender = map.get("from");
-                if (map.containsKey("authenticateMe")) {
-                    User u = authenticationManager.generateTokenForNewUser(sender, socket);
-                    String token = String.format("authentication = %s", u.getToken());
-                    socket.getOutputStream().write(token.getBytes());
-                    socket.getOutputStream().flush();
-                    clientRequireAuth = true;
-                }
-            } else {
-                throw new IllegalMessage("No sender!");
-            }
-            if (!clientRequireAuth) {
-                if (map.containsKey("to")) {
-                    receiver = map.get("to");
-                } else {
-                    throw new IllegalMessage("No receiver!");
-                }
-                if (map.containsKey("auth")) {
-                    auth = map.get("auth");
-                    user = new User(sender, auth, socket);
-                    boolean authentication = authenticationManager.authenticate(user);
-                    if (!authentication) {
-                        throw new IllegalAuthorization();
+            InputStream inputStream = socket.getInputStream();
+            while (inputStream.available() > 0) {
+                boolean clientRequireAuth = false;
+                Map<String, String> map = messageToMap(socket.getInputStream());
+                String sender;
+                String receiver;
+                String messageStr = null;
+                User user = null;
+                AuthenticationManager authenticationManager = new AuthenticationManager();
+                if (map.containsKey("from")) {
+                    sender = map.get("from");
+                    if (map.containsKey("authenticateMe")) {
+                        User u = authenticationManager.generateTokenForNewUser(sender, socket);
+                        authenticationManager.addUser(u);
+                        String token = String.format("authentication = %s", u.getToken());
+                        token = String.format("%d;%s",token.getBytes().length,token);
+                        socket.getOutputStream().write(token.getBytes());
+                        socket.getOutputStream().flush();
+                        clientRequireAuth = true;
                     }
                 } else {
-
+                    throw new IllegalMessage("No sender!");
                 }
-                if (map.containsKey("message")) {
-                    messageStr = map.get("message");
-                }
+                if (!clientRequireAuth) {
+                    if (map.containsKey("to")) {
+                        receiver = map.get("to");
+                    } else {
+                        throw new IllegalMessage("No receiver!");
+                    }
+                    if (map.containsKey("auth")) {
+                        user = new User(sender, map.get("auth"), socket);
+                        boolean authentication = authenticationManager.authenticate(user);
+                        if (!authentication) {
+                            throw new IllegalAuthorization();
+                        }
+                    } else {
 
-                Message message = new Message(user, receiver);
-                message.setMessage(messageStr);
-                message.setAuth(auth);
-                return message;
+                    }
+                    if (map.containsKey("message")) {
+                        messageStr = map.get("message");
+                    }
+
+                    Message message = new Message(user, receiver);
+                    message.setMessage(messageStr);
+                    messages.add(message);
+                }
             }
-
         } catch (IOException | IllegalMessage | IllegalAuthorization e) {
             e.printStackTrace();
         }
-        return null;
+        return messages;
     }
 
     private Map<String, String> convertToMap(String str) {
@@ -92,18 +96,30 @@ class InputProcessor {
         return map;
     }
 
-    private String readInputStream(InputStream inputStream) throws IOException {
+     String readInputStream(InputStream inputStream) throws IOException {
+        int inputLength = readMessageLength(inputStream);
+        return readInput(inputStream,inputLength);
+    }
+
+    private String readInput(InputStream inputStream, int messageLength) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
-        boolean read = false;
-        while (!read){
-            if (inputStream.available() == 0){
-                continue;
-            }
-            while (inputStream.available() > 0) {
-                stringBuilder.append((char) inputStream.read());
-            }
-            read = true;
+        for (int i = 0; i < messageLength; i++) {
+            char c =(char) inputStream.read();
+            stringBuilder.append(c);
         }
         return stringBuilder.toString();
+    }
+
+    private int readMessageLength(InputStream inputStream) throws IOException {
+        if (inputStream.available() > 0) {
+            StringBuilder stringBuilder = new StringBuilder();
+            char c;
+            while ((c = (char) inputStream.read()) != ';') {
+                stringBuilder.append(c);
+            }
+            String string = stringBuilder.toString();
+            return Integer.parseInt(string);
+        }
+        return 0;
     }
 }

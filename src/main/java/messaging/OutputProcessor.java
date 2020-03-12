@@ -22,12 +22,14 @@ class OutputProcessor{
         try {
             if (receiver == null){
                 OutputStream outputStream = message.getSender().getSocket().getOutputStream();
-                outputStream.write("from = Messaging Server\nmessage =User not found!".getBytes());
+                String message = "from = Messaging Server\nmessage = User not found!";
+                message = String.format("%d;%s",message.getBytes().length,message);
+                outputStream.write(message.getBytes());
                 outputStream.flush();
             }
             else {
                 OutputStream outputStream = receiver.getSocket().getOutputStream();
-                String messageToString = convertMessageToString(receiver);
+                String messageToString = convertMessageToString();
                 outputStream.write(messageToString.getBytes());
                 outputStream.flush();
             }
@@ -36,8 +38,8 @@ class OutputProcessor{
         }
     }
 
-    private String convertMessageToString(User receiver) {
-        return message.convertToString(receiver);
+    private String convertMessageToString() {
+        return message.convertToString();
     }
 
 

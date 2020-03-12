@@ -35,6 +35,7 @@ public class MessagingManager {
             System.out.println("App is running!");
             while (this.toRun) {
                 Socket socket = this.serverSocket.accept();
+                socket.setSoTimeout(1000);
                 new SocketCommit(socket).start();
             }
         } catch (IOException e) {
@@ -47,6 +48,7 @@ public class MessagingManager {
         this.toRun = false;
         this.inputListener.stopRunning();
         this.sender.stopRunning();
+        new MemoryMonitor().start();
             this.serverSocket.close();
         } catch (IOException e) {
             System.out.println("Server socket is closed!");

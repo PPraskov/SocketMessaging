@@ -1,11 +1,12 @@
 package messaging.util;
 
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Queue;
 
 public class MyCustomQueue<T> {
 
-    private final Queue<T> queue;
+    private volatile Queue<T> queue;
     private final Object notEmpty;
 
     public MyCustomQueue() {
@@ -21,10 +22,10 @@ public class MyCustomQueue<T> {
     }
 
     public T poll() {
-        while (this.queue.isEmpty()){
-            synchronized (this.notEmpty) {
+        synchronized (this.notEmpty) {
+            while (this.queue.isEmpty()) {
                 try {
-                    notEmpty.wait();
+                    this.notEmpty.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -33,5 +34,11 @@ public class MyCustomQueue<T> {
         return this.queue.poll();
     }
 
+    public void addAll(List<T> element) {
+        synchronized (this.notEmpty) {
+            this.queue.addAll(element);
+            this.notEmpty.notifyAll();
+        }
+    }
 
 }

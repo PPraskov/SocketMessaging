@@ -1,6 +1,7 @@
 package messaging;
 
 import java.net.Socket;
+import java.util.List;
 
 class SocketCommit extends Thread {
 
@@ -13,10 +14,10 @@ class SocketCommit extends Thread {
     @Override
     public void run() {
         InputProcessor processor = new InputProcessor();
-        Message message = processor.mapMessage(this.socket);
-        if (message != null) {
+        List<Message> messages = processor.mapMessage(this.socket);
+        if (messages.size() > 0) {
             MessageQueue queue = new MessageQueue();
-            queue.addMessage(message);
+            queue.addAllMessages(messages);
         }
     }
 }
