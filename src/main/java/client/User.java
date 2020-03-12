@@ -9,6 +9,7 @@ public class User {
     private final String name;
     private final Object authCondition;
     private final Inbox inbox;
+    private final SentMessages sentMessages;
     private final InputMessageListener messageListener;
     private final OutputMessageSender messageSender;
     private volatile String auth;
@@ -27,6 +28,7 @@ public class User {
         messageSender = new OutputMessageSender(this);
         authenticateUser();
         this.messageListener.start();
+        sentMessages = new SentMessages();
     }
 
     private void authenticateUser() {
@@ -61,6 +63,10 @@ public class User {
 
     public Inbox getInbox() {
         return inbox;
+    }
+
+    public SentMessages getSentMessages() {
+        return sentMessages;
     }
 
     public void sendMessage(String sendTo, String message) throws IOException {

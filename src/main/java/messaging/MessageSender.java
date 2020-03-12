@@ -3,8 +3,10 @@ package messaging;
 class MessageSender extends Thread {
 
     private boolean toRun;
+    private MemoryMonitor monitor;
 
-    MessageSender(){
+    MessageSender(MemoryMonitor monitor){
+        this.monitor = monitor;
         this.toRun = true;
     }
 
@@ -12,6 +14,7 @@ class MessageSender extends Thread {
     public void run() {
         MessageQueue queue = new MessageQueue();
         while (toRun){
+            this.monitor.checkForLockLock();
             Message message = queue.getMessage();
             OutputProcessor processor = new OutputProcessor(message);
             processor.sendMessage();

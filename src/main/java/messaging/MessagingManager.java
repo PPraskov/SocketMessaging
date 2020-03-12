@@ -11,6 +11,7 @@ public class MessagingManager {
     private boolean toRun = false;
     private SocketInputListener inputListener;
     private MessageSender sender;
+    private MemoryMonitor monitor;
 
     public MessagingManager() {
     }
@@ -19,6 +20,8 @@ public class MessagingManager {
         try {
             this.serverSocket = new ServerSocket(3600);
             toRun = true;
+            this.monitor = new MemoryMonitor();
+            this.monitor.start();
             execute();
         } catch (IOException e) {
             System.out.println("Messaging initialization problem");
@@ -28,8 +31,8 @@ public class MessagingManager {
 
     private void execute() {
         try {
-            this.inputListener = new SocketInputListener();
-            this.sender = new MessageSender();
+            this.inputListener = new SocketInputListener(this.monitor);
+            this.sender = new MessageSender(this.monitor);
             this.inputListener.start();
             this.sender.start();
             System.out.println("App is running!");
@@ -37,18 +40,18 @@ public class MessagingManager {
                 Socket socket = this.serverSocket.accept();
                 socket.setSoTimeout(1000);
                 new SocketCommit(socket).start();
+                this.monitor.checkForLockLock();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void stopApplication(){
+    public void stopApplication() {
         try {
-        this.toRun = false;
-        this.inputListener.stopRunning();
-        this.sender.stopRunning();
-        new MemoryMonitor().start();
+            this.toRun = false;
+            this.inputListener.stopRunning();
+            this.sender.stopRunning();
             this.serverSocket.close();
         } catch (IOException e) {
             System.out.println("Server socket is closed!");

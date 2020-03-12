@@ -50,7 +50,6 @@ public class InputMessageListener extends Thread {
             if (received.length() == 0) {
                 return;
             }
-            System.out.println(received);
             this.user.getInbox().addMessage(mapToMessage(received));
         }
     }

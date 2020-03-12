@@ -33,5 +33,6 @@ class OutputMessageSender {
         OutputStream outputStream = this.socket.getOutputStream();
         outputStream.write(messageToStr.getBytes());
         outputStream.flush();
+        this.user.getSentMessages().addMessage(messageSending);
     }
 }

@@ -11,8 +11,10 @@ import java.util.Map;
 class SocketInputListener extends Thread {
 
     private boolean toRun;
+    private MemoryMonitor monitor;
 
-    SocketInputListener() {
+    SocketInputListener(MemoryMonitor monitor) {
+        this.monitor = monitor;
         this.toRun = true;
     }
 
@@ -21,6 +23,7 @@ class SocketInputListener extends Thread {
         ActiveUsersGetter activeUsersGetter = new AuthenticationManager();
         MessageQueue queue = new MessageQueue();
         while (this.toRun) {
+            this.monitor.checkForLockLock();
             Map<String, User> activeUsers = activeUsersGetter.getActiveUsers();
             for (User user : activeUsers.values()
             ) {
