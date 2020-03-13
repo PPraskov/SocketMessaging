@@ -1,5 +1,7 @@
 package client;
 
+import messaging.exception.UnrecognizedMessage;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,9 +36,9 @@ public class InputMessageListener extends Thread {
             String authentication = "";
             while (this.socket.getInputStream().available() == 0) {
             }
+            String username = readInputStream(this.socket.getInputStream());
             authentication = readInputStream(this.socket.getInputStream());
-            String[] authenticationArr = authentication.split("=");
-            this.user.setAuth(authenticationArr[1].trim());
+            this.user.setAuth(authentication);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -46,22 +48,13 @@ public class InputMessageListener extends Thread {
     public void receiveMessages() throws IOException {
         InputStream inputStream = this.user.getSocket().getInputStream();
         while (inputStream.available() > 0) {
-            String received = readInputStream(inputStream);
-            if (received.length() == 0) {
-                return;
+            String[] stringArr = new String[2];
+            for (int i = 0; i < stringArr.length; i++) {
+                String received = readInputStream(inputStream);
+                stringArr[i] = received;
             }
-            this.user.getInbox().addMessage(mapToMessage(received));
+            this.user.getInbox().addMessage(new MessageReceiving(stringArr[0],stringArr[1]));
         }
-    }
-
-    private MessageReceiving mapToMessage(String received) {
-        String[] strings = received.split("\n");
-        String[] arg = new String[2];
-        for (int i = 0; i < strings.length; i++) {
-            String[] split = strings[i].split("=");
-            arg[i] = split[1].trim();
-        }
-        return new MessageReceiving(arg[0], arg[1]);
     }
 
     private String readInputStream(InputStream inputStream) throws IOException {
@@ -76,16 +69,19 @@ public class InputMessageListener extends Thread {
     }
 
     private int readMessageLength(InputStream inputStream) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        char c;
         while (inputStream.available() > 0) {
-            StringBuilder stringBuilder = new StringBuilder();
-            char c;
-            while ((c = (char) inputStream.read()) != ';') {
+            c = (char) inputStream.read();
+            if (Character.isDigit(c)) {
                 stringBuilder.append(c);
+            } else {
+                if (c == ';') {
+                    break;
+                }
             }
-            String string = stringBuilder.toString();
-            return Integer.parseInt(string);
         }
-        return 0;
+        return Integer.parseInt(stringBuilder.toString());
     }
 
     public synchronized void stopRunning() {

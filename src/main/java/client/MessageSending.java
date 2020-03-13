@@ -1,14 +1,13 @@
 package client;
 
-public class MessageSending {
+public class MessageSending extends Message{
 
     private final String from;
     private final String auth;
     private final String to;
     private final String message;
-    private int byteSize;
 
-    public MessageSending(User user , String to, String message) {
+    MessageSending(User user , String to, String message) {
         this.from = user.getName();
         this.auth = user.getAuth();
         this.to = to;
@@ -32,15 +31,35 @@ public class MessageSending {
     }
 
     @Override
-    public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(String.format("from =%s\n",this.from));
-        stringBuilder.append(String.format("auth =%s\n",this.auth));
-        stringBuilder.append(String.format("to =%s\n",this.to));
-        stringBuilder.append(String.format("message =%s",this.message.trim()));
-        String message = stringBuilder.toString();
-        this.byteSize = message.getBytes().length;
-        String result = String.format("%d;%s",this.byteSize,message);
-        return result;
+    byte[] convertToByteArr(){
+        int fromLength = this.from.getBytes().length;
+        int authLength = this.auth.getBytes().length;
+        int toLength = this.to.getBytes().length;
+        String result = String.format(LENTGH_PART+LENTGH_PART+LENTGH_PART+"%d;",
+                fromLength,
+                this.from,
+                authLength,
+                this.auth,
+                toLength,
+                this.to,
+                this.message.getBytes().length);
+        return combineMessageAndString(result.getBytes());
+    }
+    private byte[] combineMessageAndString(byte[] messageFromString) {
+        byte[] messageBytes = this.message.getBytes();
+        int length = messageBytes.length + messageFromString.length;
+        byte[] arr = new byte[length];
+        int i = 0;
+        for (byte b : messageFromString
+        ) {
+            arr[i] = b;
+            i++;
+        }
+        for (byte b : messageBytes
+        ) {
+            arr[i] = b;
+            i++;
+        }
+        return arr;
     }
 }

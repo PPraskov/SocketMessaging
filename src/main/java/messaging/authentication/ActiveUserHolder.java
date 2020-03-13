@@ -10,10 +10,30 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 class ActiveUserHolder {
+    private static ActiveUserHolder userHolder;
+    private static volatile boolean alive = false;
+    private static ConcurrentMap<String, User> activeUsers;
 
-    private static final ConcurrentMap<String, User> activeUsers = new ConcurrentHashMap<>();
+    static {
+        userHolder = new ActiveUserHolder();
+        alive = true;
+    }
 
-    ActiveUserHolder() {
+    private ActiveUserHolder() {
+        activeUsers = new ConcurrentHashMap<>();
+    }
+
+    public static ActiveUserHolder getUserHolder() {
+        ActiveUserHolder holder;
+        if (!alive){
+            createUserHolder();
+        }
+        holder = userHolder;
+        return holder;
+    }
+
+    private static void createUserHolder() {
+        userHolder = new ActiveUserHolder();
     }
 
     void addUser(User user) {

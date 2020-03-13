@@ -6,12 +6,26 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class TokenHolder {
-
+    private static TokenHolder tokenHolder;
+    private static volatile boolean alive = false;
     private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<>();
 
-    TokenHolder() {
+    private TokenHolder() {
+        alive = true;
     }
 
+    static TokenHolder getTokenHolder() {
+        TokenHolder holder;
+        if (!alive) {
+            createTokenHolder();
+        }
+        holder = tokenHolder;
+        return holder;
+    }
+
+    private static void createTokenHolder() {
+        tokenHolder = new TokenHolder();
+    }
 
     Map<String, String> getActiveTokens() {
         return Collections.unmodifiableMap(new HashMap<>(tokens));

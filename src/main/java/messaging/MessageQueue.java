@@ -5,11 +5,31 @@ import messaging.util.MyCustomQueue;
 import java.util.List;
 
 class MessageQueue {
+    private static MessageQueue queue;
+    private static volatile boolean alive = false;
+    private final MyCustomQueue<Message> messageQueue;
 
-    private static final MyCustomQueue<Message> messageQueue = new MyCustomQueue<>();
+    static {
+        queue = new MessageQueue();
+        alive = true;
+    }
 
+    public static MessageQueue getQueue() {
+        MessageQueue messageQueue;
+        if (!alive) {
+            createMessageQueue();
+        }
+        messageQueue = queue;
+        return messageQueue;
+    }
 
-    MessageQueue() {
+    private static void createMessageQueue() {
+        queue = new MessageQueue();
+        alive = true;
+    }
+
+    private MessageQueue() {
+        messageQueue = new MyCustomQueue<>();
     }
 
     void addMessage(Message message) {
@@ -21,7 +41,7 @@ class MessageQueue {
         return messageQueue.poll();
     }
 
-    void addAllMessages(List<Message> messages){
+    void addAllMessages(List<Message> messages) {
         messageQueue.addAll(messages);
     }
 }

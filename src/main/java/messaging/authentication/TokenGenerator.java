@@ -3,10 +3,28 @@ package messaging.authentication;
 import java.util.Random;
 
 class TokenGenerator {
-
+    private static TokenGenerator generator;
+    private static volatile boolean alive = false;
     private static final int TOKEN_LENGTH = 15;
 
-    TokenGenerator() {
+    static {
+        generator = new TokenGenerator();
+    }
+    private TokenGenerator() {
+        alive = true;
+    }
+
+    public static TokenGenerator getGenerator() {
+        TokenGenerator tokenGenerator;
+        if (!alive){
+            createTokenGenerator();
+        }
+        tokenGenerator = generator;
+        return tokenGenerator;
+    }
+
+    private static void createTokenGenerator() {
+        generator = new TokenGenerator();
     }
 
     String generateAuthToken() {

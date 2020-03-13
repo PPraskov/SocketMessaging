@@ -1,7 +1,6 @@
 package client;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 
 public class User {
@@ -79,7 +78,7 @@ public class User {
                 }
             }
         }
-        this.messageSender.sendMessage(sendTo, message);
+        this.messageSender.sendMessageAsByteArr(sendTo, message);
     }
 
     public void stopListening() {

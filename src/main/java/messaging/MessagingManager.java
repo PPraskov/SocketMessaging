@@ -3,7 +3,6 @@ package messaging;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 
 public class MessagingManager {
 
@@ -12,6 +11,7 @@ public class MessagingManager {
     private SocketInputListener inputListener;
     private MessageSender sender;
     private MemoryMonitor monitor;
+    private InitialSocketAuthentication initialSocketAuthentication;
 
     public MessagingManager() {
     }
@@ -21,6 +21,7 @@ public class MessagingManager {
             this.serverSocket = new ServerSocket(3600);
             toRun = true;
             this.monitor = new MemoryMonitor();
+            this.initialSocketAuthentication = new InitialAuthentication();
             this.monitor.start();
             execute();
         } catch (IOException e) {
@@ -39,7 +40,7 @@ public class MessagingManager {
             while (this.toRun) {
                 Socket socket = this.serverSocket.accept();
                 socket.setSoTimeout(1000);
-                new SocketCommit(socket).start();
+                this.initialSocketAuthentication.authenticateSocket(socket);
                 this.monitor.checkForLockLock();
             }
         } catch (IOException e) {

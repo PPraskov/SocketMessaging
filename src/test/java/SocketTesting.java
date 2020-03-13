@@ -50,8 +50,8 @@ public class SocketTesting {
         try {
             User user1 = new User("Papi");
             User user2 = new User("Nick");
-            String messageToSecond = "testTo " + user2.getName();
-            String messageToFirst = "TestTo " + user1.getName();
+            String messageToFirst = "testTo" + user2.getName();
+            String messageToSecond = "TestTo" + user1.getName();
             user1.sendMessage(user2.getName(), messageToSecond);
             user2.sendMessage(user1.getName(), messageToFirst);
             List<MessageReceiving> user2Inbox = user2.getInbox().getAllMessages();
@@ -118,9 +118,9 @@ public class SocketTesting {
             boolean found = false;
             for (Message received : receivedMessages
             ) {
-//                if (received.getFrom().equals("Messaging Server") && received.getContent().equals("User not found!")) {
-//                    continue;
-//                }
+                if (received.getFrom().equals("Messaging Server") && received.getContent().equals("User not found!")) {
+                    continue;
+                }
                 int compare = sent.compareTo(received);
                 if (compare == 0) {
                     found = true;

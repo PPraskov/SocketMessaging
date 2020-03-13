@@ -14,14 +14,16 @@ class SocketInputListener extends Thread {
     private MemoryMonitor monitor;
 
     SocketInputListener(MemoryMonitor monitor) {
+        this.setDaemon(true);
+        this.setPriority(9);
         this.monitor = monitor;
         this.toRun = true;
     }
 
     @Override
     public void run() {
-        ActiveUsersGetter activeUsersGetter = new AuthenticationManager();
-        MessageQueue queue = new MessageQueue();
+        ActiveUsersGetter activeUsersGetter = AuthenticationManager.getManager();
+        MessageQueue queue = MessageQueue.getQueue();
         while (this.toRun) {
             this.monitor.checkForLockLock();
             Map<String, User> activeUsers = activeUsersGetter.getActiveUsers();
@@ -30,7 +32,7 @@ class SocketInputListener extends Thread {
                 try {
                     InputStream inputStream = user.getSocket().getInputStream();
                     if (inputStream.available() > 0) {
-                        InputProcessor processor = new InputProcessor();
+                        InputProcessor processor = InputProcessor.getInputProcessor();
                         List<Message> messages = processor.mapMessage(user.getSocket());
                         queue.addAllMessages(messages);
                     }

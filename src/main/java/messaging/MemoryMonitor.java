@@ -16,13 +16,27 @@ public class MemoryMonitor extends Thread {
 
     @Override
     public void run() {
+        boolean toLock = false;
         while (true) {
-            while (((this.heapMaxMemory - getCurrentMemory()) / this.heapMaxMemory) > 0.85) {
-                lock();
-                System.gc();
+            if (checkMemory()){
+                toLock = true;
+                continue;
             }
-            unlock();
+            if (toLock){
+                toLock = false;
+                unlock();
+            }
         }
+    }
+
+    private boolean checkMemory(){
+        boolean lockOn = false;
+        if (((this.heapMaxMemory - getCurrentMemory()) / this.heapMaxMemory) > 0.85) {
+            lock();
+            System.gc();
+            lockOn = true;
+        }
+        return lockOn;
     }
 
     private long getCurrentMemory() {

@@ -7,40 +7,52 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 class OutputProcessor{
+    private static OutputProcessor processor;
+    private static volatile boolean alive = false;
 
-    private final Message message;
+    private static String NO_USER_FOUND = "from = Messaging Server\nmessage = User not found!";
 
-    OutputProcessor(Message message) {
-        this.message = message;
+    static {
+        processor = new OutputProcessor();
+        alive = true;
     }
 
+    private OutputProcessor() {}
 
-    void sendMessage() {
+    public static OutputProcessor getProcessor() {
+        OutputProcessor outputProcessor;
+        if (!alive){
+            createProcessor();
+        }
+        outputProcessor = processor;
+        return outputProcessor;
+    }
+
+    private static void createProcessor() {
+        processor = new OutputProcessor();
+        alive = true;
+    }
+
+    void sendMessage(Message message) {
         String receiverStr = message.getReceiver();
-        ActiveUsersGetter usersGetter = new AuthenticationManager();
+        ActiveUsersGetter usersGetter = AuthenticationManager.getManager();
         User receiver = usersGetter.getUser(receiverStr);
         try {
+            OutputMessageWriter writer = OutputMessageWriter.getWriter();
+            OutputStream outputStream;
+            String messageStr;
             if (receiver == null){
-                OutputStream outputStream = message.getSender().getSocket().getOutputStream();
-                String message = "from = Messaging Server\nmessage = User not found!";
-                message = String.format("%d;%s",message.getBytes().length,message);
-                outputStream.write(message.getBytes());
-                outputStream.flush();
+                outputStream = message.getSender().getSocket().getOutputStream();
+                messageStr = String.format("%d;%s",NO_USER_FOUND.getBytes().length,NO_USER_FOUND);
+                writer.flushMessage(outputStream,messageStr);
             }
             else {
-                OutputStream outputStream = receiver.getSocket().getOutputStream();
-                String messageToString = convertMessageToString();
-                outputStream.write(messageToString.getBytes());
-                outputStream.flush();
+                outputStream = receiver.getSocket().getOutputStream();
+                writer.flushMessage(outputStream,message.convertToByteArr());
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-    private String convertMessageToString() {
-        return message.convertToString();
-    }
-
-
 }

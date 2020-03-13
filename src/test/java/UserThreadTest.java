@@ -10,7 +10,7 @@ public class UserThreadTest extends Thread {
     private List<String> usernames;
 
     public UserThreadTest() {
-        this.setPriority(5);
+        this.setPriority(2);
     }
 
     public User getUser() {
@@ -28,9 +28,9 @@ public class UserThreadTest extends Thread {
         StringBuilder stringBuilder = new StringBuilder();
         String[] toArr = new String[count];
         String[] messageArr = new String[count];
+        Random random = new Random();
         do {
-            Random random = new Random();
-            int length = random.nextInt(16)+5;
+            int length = random.nextInt(16) + 5;
             String message;
             stringBuilder.setLength(0);
             while (stringBuilder.length() < length) {
@@ -48,8 +48,9 @@ public class UserThreadTest extends Thread {
             counter++;
         } while (counter < count);
         try {
-            this.user.sendMessages(toArr,messageArr);
-        } catch (IOException e) {
+            this.user.sendMessages(toArr, messageArr);
+            Thread.sleep(random.nextInt(100) + 50);
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -58,7 +59,5 @@ public class UserThreadTest extends Thread {
         UsernameGenerator usernameGenerator = new UsernameGenerator();
         this.user = new User(usernameGenerator.getUsername());
         this.usernames = usernameGenerator.getAll();
-        List<String> collect = usernames.stream().filter(x -> !x.equals(this.user.getName())).collect(Collectors.toList());
-
     }
 }

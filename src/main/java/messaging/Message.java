@@ -4,19 +4,16 @@ class Message {
 
     private final User sender;
     private final String receiver;
-    private String message;
+    private final byte[] message;
 
-    Message(User sender, String receiver) {
+    Message(User sender, String receiver, byte[] message) {
         this.sender = sender;
         this.receiver = receiver;
-    }
-
-    String getMessage() {
-        return message;
-    }
-
-    void setMessage(String message){
         this.message = message;
+    }
+
+    byte[] getMessage() {
+        return message;
     }
 
     User getSender() {
@@ -27,13 +24,30 @@ class Message {
         return receiver;
     }
 
-    String convertToString(){
-       String message = String.format("from = %s", getSender().getUsername()) + System.lineSeparator() +
-                String.format("message = %s", getMessage()) + System.lineSeparator();
-       return String.format("%d;%s",getMessageLength(message),message);
+    byte[] convertToByteArr() {
+        int senderLength = this.sender.getUsername().getBytes().length;
+        String messageStringPart = String.format(MessageConstants.OUTPUT_MESSAGE_PATTERN_PART+"%d;",
+                senderLength,
+                this.sender.getUsername(),
+                this.message.length);
+
+        return combineMessageAndString(messageStringPart.getBytes());
     }
 
-    private int getMessageLength(String message){
-        return message.getBytes().length;
+    private byte[] combineMessageAndString(byte[] messageFromString) {
+        int length = this.message.length + messageFromString.length;
+        byte[] arr = new byte[length];
+        int i = 0;
+        for (byte b : messageFromString
+        ) {
+            arr[i] = b;
+            i++;
+        }
+        for (byte b : this.message
+        ) {
+            arr[i] = b;
+            i++;
+        }
+        return arr;
     }
 }

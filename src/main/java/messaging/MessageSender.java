@@ -6,18 +6,20 @@ class MessageSender extends Thread {
     private MemoryMonitor monitor;
 
     MessageSender(MemoryMonitor monitor){
+        this.setDaemon(true);
+        this.setPriority(9);
         this.monitor = monitor;
         this.toRun = true;
     }
 
     @Override
     public void run() {
-        MessageQueue queue = new MessageQueue();
+        MessageQueue queue = MessageQueue.getQueue();
         while (toRun){
             this.monitor.checkForLockLock();
             Message message = queue.getMessage();
-            OutputProcessor processor = new OutputProcessor(message);
-            processor.sendMessage();
+            OutputProcessor.getProcessor().sendMessage(message);
+
         }
     }
 
