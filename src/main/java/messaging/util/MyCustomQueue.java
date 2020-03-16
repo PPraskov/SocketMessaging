@@ -3,46 +3,65 @@ package messaging.util;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class MyCustomQueue<T> {
 
-    private volatile Queue<T> queue;
-    private final Object notEmpty;
-    private volatile int size;
+    private final BlockingQueue<T> queue;
+    private final Lock lock;
+    private final Condition empty;
+    private volatile int added = 0;
+    private volatile int taken = 0;
 
     public MyCustomQueue() {
-        this.queue = new ArrayDeque<>();
-        this.notEmpty = new Object();
-        this.size = 0;
+        this.queue = new ArrayBlockingQueue<>(1000);
+        this.lock = new ReentrantLock();
+        empty = this.lock.newCondition();
+
     }
 
     public void add(T element) {
-        synchronized (this.notEmpty) {
-            this.queue.add(element);
-            int temp = size;
-            temp++;
-            size = temp;
-            this.notEmpty.notify();
+        try {
+            lock.lock();
+            queue.add(element);
+            empty.signal();
+        } finally {
+            lock.unlock();
         }
     }
 
     public T poll() {
-        T result;
-        if (size >= 0) {
-            synchronized (this.notEmpty) {
-                try {
-                    this.notEmpty.wait(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        try {
+            lock.lock();
+            while (queue.isEmpty()) {
+                empty.awaitUninterruptibly();
             }
+            return queue.poll();
+        } finally {
+            lock.unlock();
         }
-        if (this.queue.isEmpty()){
-            poll();
-        }
-        int temp = size - 1;
-        result = this.queue.poll();
-        size = temp;
-        return result;
     }
+
+//    private boolean checkIfEmpty() {
+//        try {
+//            lock.lock();
+//            boolean isEmpty = queue.isEmpty();
+//            if (isEmpty) {
+//                try {
+//                    empty.await(100L, TimeUnit.MILLISECONDS);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            return isEmpty;
+//        } finally {
+//            lock.unlock();
+//        }
+//    }
 }

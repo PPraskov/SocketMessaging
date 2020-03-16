@@ -14,7 +14,6 @@ public class MessagingManager {
     private SocketInputListener inputListener;
     private MessageSender sender;
     private MemoryMonitor monitor;
-    private InitialSocketAuthentication initialSocketAuthentication;
 
     public MessagingManager() {
     }
@@ -24,7 +23,6 @@ public class MessagingManager {
             this.serverSocket = new ServerSocket(ServerConstants.PORT);
             toRun = true;
             this.monitor = new MemoryMonitor();
-            this.initialSocketAuthentication = new InitialAuthentication();
             this.monitor.start();
             execute();
         } catch (IOException e) {
@@ -42,7 +40,8 @@ public class MessagingManager {
             while (this.toRun) {
                 Socket socket = this.serverSocket.accept();
                 socket.setSoTimeout(ServerConstants.TIMEOUT);
-                this.initialSocketAuthentication.authenticateSocket(socket);
+                InitialSocketAuthentication initialSocketAuthentication = new InitialAuthentication(socket);
+                new Thread(initialSocketAuthentication).start();
                 this.monitor.checkForLockLock();
             }
         } catch (IOException e) {

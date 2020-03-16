@@ -6,7 +6,6 @@ public class Runner implements Runnable {
 
     public Runner(Object object) {
         this.object = object;
-
     }
 
     @Override

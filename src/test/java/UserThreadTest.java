@@ -11,7 +11,7 @@ public class UserThreadTest extends Thread {
     private List<String> usernames;
 
     public UserThreadTest() {
-        this.setPriority(7);
+
     }
 
     public User getUser() {
@@ -39,6 +39,7 @@ public class UserThreadTest extends Thread {
             stringBuilder.setLength(0);
             while (stringBuilder.length() < length) {
                 int i = random.nextInt(74) + 48;
+//                Thread.yield();
                 if ((i > 57 && i < 74) || (i > 90 && i < 97)) {
                     continue;
                 }

@@ -20,6 +20,7 @@ public class InputMessageListener extends Thread {
         this.socket = this.user.getSocket();
         this.reader = new InputStreamReader(this.socket.getInputStream(),MessageConstants.ENCODING);
         this.toRun = true;
+        Thread.yield();
     }
 
 

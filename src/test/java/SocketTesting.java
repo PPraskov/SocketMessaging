@@ -23,7 +23,7 @@ public class SocketTesting {
     }
 
     @BeforeClass
-    public static void initialize() throws ClassNotFoundException, IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
+    public static void initialize() throws IllegalAccessException, InvocationTargetException, InstantiationException {
         Class<?> aClass = MessagingManager.class;
         Constructor<?>[] declaredConstructors = aClass.getDeclaredConstructors();
         Constructor c = declaredConstructors[0];
@@ -104,31 +104,10 @@ public class SocketTesting {
         for (int i = 0; i < userThreadTests.size(); i++) {
             UserThreadTest u = userThreadTests.get(i);
             u.join();
-            u.getUser().stopListening();
             users.add(u.getUser());
         }
-        Assert.assertEquals(true, checkMessages(users));
-    }
-
-    @Test
-    public void guysChatting() throws InterruptedException {
-        final int usersCount = 3;
-        UsernameGenerator generator = new UsernameGenerator();
-        generator.setMax(usersCount);
-        List<UserThreadTest> userThreadTests = new ArrayList<>();
-        for (int i = 0; i < usersCount; i++) {
-            UserThreadTest test = new UserThreadTest();
-            test.start();
-            userThreadTests.add(test);
-        }
-        List<User> users = new ArrayList<>();
-        for (int i = 0; i < userThreadTests.size(); i++) {
-            Thread.sleep(10000);
-            UserThreadTest u = userThreadTests.get(i);
-            u.join();
-            users.add(u.getUser());
-            u.getUser().stopListening();
-        }
+        Thread.sleep(500);
+        users.stream().forEach(u->u.stopListening());
         Assert.assertEquals(true, checkMessages(users));
     }
 

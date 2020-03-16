@@ -2,6 +2,9 @@ package messaging.messages;
 
 import messaging.util.MyCustomQueue;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
 public class MessageQueue {
     private static MessageQueue queue;
     private static volatile boolean alive = false;

@@ -17,6 +17,7 @@ class SocketInputListener extends Thread {
 
     SocketInputListener(MemoryMonitor monitor) {
         this.setDaemon(true);
+        this.setPriority(8);
         this.monitor = monitor;
         this.toRun = true;
     }
