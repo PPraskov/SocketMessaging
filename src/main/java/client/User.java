@@ -1,6 +1,9 @@
 package client;
 
+import client.constants.ServerConstants;
+
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 
 public class User {
@@ -11,13 +14,13 @@ public class User {
     private final SentMessages sentMessages;
     private final InputMessageListener messageListener;
     private final OutputMessageSender messageSender;
-    private volatile String auth;
+    private String auth;
     private Socket socket;
 
-    public User(String name) {
+    public User(String name) throws IOException {
         this.name = name;
         try {
-            this.socket = new Socket("localhost", 3600);
+            this.socket = new Socket(ServerConstants.ADDRESS, ServerConstants.PORT);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -40,7 +43,7 @@ public class User {
         return name;
     }
 
-    String getAuth() {
+    public String getAuth() {
         return auth;
 
     }
@@ -68,7 +71,7 @@ public class User {
         return sentMessages;
     }
 
-    public void sendMessage(String sendTo, String message) throws IOException {
+    public void sendMessage(String sendTo, String message) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         if (auth == null) {
             synchronized (authCondition) {
                 try {
@@ -78,7 +81,7 @@ public class User {
                 }
             }
         }
-        this.messageSender.sendMessageAsByteArr(sendTo, message);
+        this.messageSender.sendMessage(sendTo, message);
     }
 
     public void stopListening() {
@@ -89,9 +92,9 @@ public class User {
         return authCondition;
     }
 
-    public void sendMessages(String[] toArr, String[] messageArr) throws IOException {
+    public void sendMessages(String[] toArr, String[] messageArr) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         for (int i = 0; i < toArr.length; i++) {
-            sendMessage(toArr[i],messageArr[i]);
+            sendMessage(toArr[i], messageArr[i]);
         }
     }
 }

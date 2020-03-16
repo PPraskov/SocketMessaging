@@ -1,18 +1,12 @@
-package messaging;
+package messaging.messages;
 
 import messaging.util.MyCustomQueue;
 
-import java.util.List;
-
-class MessageQueue {
+public class MessageQueue {
     private static MessageQueue queue;
     private static volatile boolean alive = false;
-    private final MyCustomQueue<Message> messageQueue;
+    private final MyCustomQueue<AbstractMessage> messageQueue;
 
-    static {
-        queue = new MessageQueue();
-        alive = true;
-    }
 
     public static MessageQueue getQueue() {
         MessageQueue messageQueue;
@@ -32,16 +26,13 @@ class MessageQueue {
         messageQueue = new MyCustomQueue<>();
     }
 
-    void addMessage(Message message) {
-        messageQueue.add(message);
-        System.out.println("one added");
-    }
 
-    Message getMessage() {
+    public AbstractMessage getMessage() {
         return messageQueue.poll();
     }
 
-    void addAllMessages(List<Message> messages) {
-        messageQueue.addAll(messages);
+    public void addMessage(AbstractMessage message) {
+        messageQueue.add(message);
     }
+
 }

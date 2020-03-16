@@ -1,7 +1,10 @@
 package messaging;
 
+import messaging.constants.MessageConstants;
+
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
 class OutputMessageWriter {
     private static OutputMessageWriter writer;
@@ -27,12 +30,12 @@ class OutputMessageWriter {
     }
 
      void flushMessage(OutputStream outputStream,String message) throws IOException {
-        outputStream.write(message.getBytes());
-        outputStream.flush();
+         flushMessage(outputStream,message.toCharArray());
     }
 
-    void flushMessage(OutputStream outputStream, byte[] arr) throws IOException {
-        outputStream.write(arr);
-        outputStream.flush();
+    void flushMessage(OutputStream outputStream, char[] arr) throws IOException {
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, MessageConstants.ENCODING);
+        outputStreamWriter.write(arr);
+        outputStreamWriter.flush();
     }
 }

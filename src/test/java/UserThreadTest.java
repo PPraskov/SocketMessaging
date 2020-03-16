@@ -1,6 +1,7 @@
 import client.User;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -10,7 +11,7 @@ public class UserThreadTest extends Thread {
     private List<String> usernames;
 
     public UserThreadTest() {
-        this.setPriority(2);
+        this.setPriority(7);
     }
 
     public User getUser() {
@@ -19,19 +20,22 @@ public class UserThreadTest extends Thread {
 
     @Override
     public void run() {
-        initialize();
-        startTalking(10);
+        try {
+            initialize();
+            startTalking(10);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void startTalking(final int count) {
         int counter = 0;
         StringBuilder stringBuilder = new StringBuilder();
-        String[] toArr = new String[count];
-        String[] messageArr = new String[count];
         Random random = new Random();
+        String to;
+        String message;
         do {
             int length = random.nextInt(16) + 5;
-            String message;
             stringBuilder.setLength(0);
             while (stringBuilder.length() < length) {
                 int i = random.nextInt(74) + 48;
@@ -43,21 +47,25 @@ public class UserThreadTest extends Thread {
 
             }
             message = stringBuilder.toString().trim();
-            toArr[counter] = this.usernames.get(random.nextInt(this.usernames.size()));
-            messageArr[counter] = message;
-            counter++;
+            to = this.usernames.get(random.nextInt(this.usernames.size()));
+
+            try {
+                this.user.sendMessage(to, message);
+                counter++;
+            } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
         } while (counter < count);
-        try {
-            this.user.sendMessages(toArr, messageArr);
-            Thread.sleep(random.nextInt(100) + 50);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
-    private void initialize() {
+    private void initialize() throws IOException {
         UsernameGenerator usernameGenerator = new UsernameGenerator();
         this.user = new User(usernameGenerator.getUsername());
         this.usernames = usernameGenerator.getAll();
+        try {
+            Thread.sleep(400);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

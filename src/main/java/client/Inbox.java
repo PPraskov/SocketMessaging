@@ -1,10 +1,12 @@
 package client;
 
+import client.messages.InputMessage;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Inbox {
-    private volatile List<MessageReceiving> messages;
+    private volatile List<InputMessage> messages;
     private final Object emptyCondition;
     private boolean isEmpty;
 
@@ -14,14 +16,14 @@ public class Inbox {
         this.isEmpty = true;
     }
 
-    public void addMessage(MessageReceiving message) {
+    public void addMessage(InputMessage message) {
         synchronized (this.emptyCondition) {
             this.messages.add(message);
             this.isEmpty = false;
-            this.emptyCondition.notify();
+            this.emptyCondition.notifyAll();
         }
     }
-    public void addMessages(List<MessageReceiving> messages) {
+    public void addMessages(List<InputMessage> messages) {
         synchronized (this.emptyCondition) {
             this.messages.addAll(messages);
             this.isEmpty = false;
@@ -30,12 +32,12 @@ public class Inbox {
 
     }
 
-    public MessageReceiving getMessage() {
+    public InputMessage getMessage() {
         lockIfEmpty();
         return this.messages.get(0);
     }
 
-    public List<MessageReceiving> getAllMessages(){
+    public List<InputMessage> getAllMessages(){
         lockIfEmpty();
         return this.messages;
     }

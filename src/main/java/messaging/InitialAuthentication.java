@@ -1,7 +1,8 @@
 package messaging;
 
 import messaging.authentication.AuthenticationManager;
-import messaging.exception.IllegalMessage;
+import messaging.authentication.User;
+import messaging.constants.MessageConstants;
 import messaging.exception.UnrecognizedMessage;
 
 import java.io.IOException;
@@ -25,20 +26,26 @@ class InitialAuthentication implements InitialSocketAuthentication {
             }
         }
         InputProcessor processor = InputProcessor.getInputProcessor();
-        Map<Integer, byte[]> map = processor.convertToMessage(MESSAGE_LENGTH, socket.getInputStream());
-        OutputMessageWriter writer = OutputMessageWriter.getWriter();
-
-        String sender = processor.getPartFromMessage(FROM, map);
-        if (processor.getPartFromMessage(AUTH_INDEX, map).equals(REQUEST_AUTHENTICATION_MESSAGE)) {
-            AuthenticationManager authenticationManager = AuthenticationManager.getManager();
-            User u = authenticationManager.generateTokenForNewUser(sender, socket);
-            authenticationManager.addUser(u);
-            int usernameLength = u.getUsername().getBytes().length;
-            int tokenLength = u.getToken().getBytes().length;
-            String token = String.format("%d;%s%d;%s", usernameLength, u.getUsername(), tokenLength, u.getToken());
-            writer.flushMessage(socket.getOutputStream(), token);
-        } else {
-            throw new UnrecognizedMessage();
-        }
+        processor.wrapToMessage(socket);
+//        OutputMessageWriter writer = OutputMessageWriter.getWriter();
+//
+//        String sender = map.get(FROM);
+//        String auth = map.get(AUTH_INDEX);
+//        if (REQUEST_AUTHENTICATION_MESSAGE.equals(auth)) {
+//            AuthenticationManager authenticationManager = AuthenticationManager.getManager();
+//            User u = authenticationManager.generateTokenForNewUser(sender, socket);
+//            authenticationManager.addUser(u);
+//            int usernameLength = u.getUsername().getBytes().length;
+//            int tokenLength = u.getToken().getBytes().length;
+//            String token = String.format(MessageConstants.OUTPUT_MESSAGE_PATTERN_PART +
+//                    MessageConstants.OUTPUT_MESSAGE_PATTERN_PART,
+//                    usernameLength,
+//                    u.getUsername(),
+//                    tokenLength,
+//                    u.getToken());
+//            writer.flushMessage(socket.getOutputStream(), token);
+//        } else {
+//            throw new UnrecognizedMessage();
+//        }
     }
 }

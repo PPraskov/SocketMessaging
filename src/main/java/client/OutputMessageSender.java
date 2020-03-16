@@ -1,8 +1,15 @@
 package client;
 
+import client.messages.AuthenticationMessage;
+import client.messages.MessageConverter;
+import client.messages.MessageSending;
+import client.messages.OutputMessage;
+
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 class OutputMessageSender {
     private User user;
@@ -15,24 +22,26 @@ class OutputMessageSender {
 
     void sendAuthenticationRequest() {
         try {
-            AuthenticationMessage authenticationMessage = new AuthenticationMessage(this.user);
-            sendMessageAsByteArr(authenticationMessage.convertToByteArr());
+            sendMessage((new AuthenticationMessage(this.user).convertMessage()));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void sendMessageAsByteArr(byte[] arr) throws IOException {
-        OutputStream outputStream = this.socket.getOutputStream();
-        outputStream.write(arr);
-        outputStream.flush();
+    private void sendMessage(char[] message) throws IOException {
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.socket.getOutputStream(), StandardCharsets.UTF_8);
+        outputStreamWriter.write(message);
+        outputStreamWriter.flush();
         waitABit();
     }
 
+    private void sendMessage(String message) throws IOException {
+        sendMessage(message.toCharArray());
+    }
 
-    void sendMessageAsByteArr(String sendTo, String message) throws IOException {
-        MessageSending messageSending = new MessageSending(this.user, sendTo, message);
-        sendMessageAsByteArr(messageSending.convertToByteArr());
+    void sendMessage(String sendTo, String message) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        OutputMessage messageSending = new MessageSending(this.user, sendTo, message);
+        sendMessage(messageSending.convertMessage());
         this.user.getSentMessages().addMessage(messageSending);
         waitABit();
     }

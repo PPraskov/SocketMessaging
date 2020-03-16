@@ -1,7 +1,8 @@
-import client.MessageReceiving;
-import client.MessageSending;
-import client.SentMessages;
+import client.messages.InputMessage;
+import client.messages.MessageReceiving;
+import client.messages.MessageSending;
 import client.User;
+import client.messages.OutputMessage;
 import messaging.MessagingManager;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -13,7 +14,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class SocketTesting {
 
@@ -50,14 +50,15 @@ public class SocketTesting {
         try {
             User user1 = new User("Papi");
             User user2 = new User("Nick");
-            String messageToFirst = "testTo" + user2.getName();
-            String messageToSecond = "TestTo" + user1.getName();
+            String messageToFirst = "testTo" + user1.getName();
+            String messageToSecond = "TestTo" + user2.getName();
             user1.sendMessage(user2.getName(), messageToSecond);
             user2.sendMessage(user1.getName(), messageToFirst);
-            List<MessageReceiving> user2Inbox = user2.getInbox().getAllMessages();
-            List<MessageReceiving> user1Inbox = user1.getInbox().getAllMessages();
+            List<InputMessage> user2Inbox = user2.getInbox().getAllMessages();
+            List<InputMessage> user1Inbox = user1.getInbox().getAllMessages();
             MessageReceiving testFromFirst = new MessageReceiving(user1.getName(), messageToSecond);
             MessageReceiving testFromSecond = new MessageReceiving(user2.getName(), messageToFirst);
+            Thread.sleep(1000);
             user1.stopListening();
             user2.stopListening();
 
@@ -75,7 +76,7 @@ public class SocketTesting {
         try {
             User user1 = new User("Bumba");
             user1.sendMessage("nonExistent", "do you even exist?");
-            List<MessageReceiving> user1Inbox = user1.getInbox().getAllMessages();
+            List<InputMessage> user1Inbox = user1.getInbox().getAllMessages();
             MessageReceiving messageReceivingTest = new MessageReceiving("Messaging Server", "User not found!");
             user1.stopListening();
             boolean passed = false;
@@ -83,7 +84,7 @@ public class SocketTesting {
                 passed = true;
             }
             Assert.assertTrue("Fucked up!", passed);
-        } catch (IOException e) {
+        } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
@@ -103,9 +104,32 @@ public class SocketTesting {
         for (int i = 0; i < userThreadTests.size(); i++) {
             UserThreadTest u = userThreadTests.get(i);
             u.join();
+            u.getUser().stopListening();
             users.add(u.getUser());
         }
-        Assert.assertEquals(true,checkMessages(users));
+        Assert.assertEquals(true, checkMessages(users));
+    }
+
+    @Test
+    public void guysChatting() throws InterruptedException {
+        final int usersCount = 3;
+        UsernameGenerator generator = new UsernameGenerator();
+        generator.setMax(usersCount);
+        List<UserThreadTest> userThreadTests = new ArrayList<>();
+        for (int i = 0; i < usersCount; i++) {
+            UserThreadTest test = new UserThreadTest();
+            test.start();
+            userThreadTests.add(test);
+        }
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < userThreadTests.size(); i++) {
+            Thread.sleep(10000);
+            UserThreadTest u = userThreadTests.get(i);
+            u.join();
+            users.add(u.getUser());
+            u.getUser().stopListening();
+        }
+        Assert.assertEquals(true, checkMessages(users));
     }
 
 
@@ -113,12 +137,14 @@ public class SocketTesting {
         boolean ok = true;
         List<Message> sentMessages = mapSentMessagesToMessages(users);
         List<Message> receivedMessages = mapReceivedMessagesToMessages(users);
+        int inactive = 0;
         for (Message sent : sentMessages
         ) {
             boolean found = false;
             for (Message received : receivedMessages
             ) {
                 if (received.getFrom().equals("Messaging Server") && received.getContent().equals("User not found!")) {
+                    inactive++;
                     continue;
                 }
                 int compare = sent.compareTo(received);
@@ -128,23 +154,24 @@ public class SocketTesting {
                 }
             }
             ok = found;
-            if (!ok){
+            if (!ok) {
                 System.out.println(sent.getTo());
                 System.out.println(sent.getFrom());
                 System.out.println(sent.getContent());
                 break;
             }
         }
-        System.out.printf("Messages Sent: %d -> Messages Received %d \n",sentMessages.size(),receivedMessages.size());
+        System.out.println("Inactive users " + inactive);
+        System.out.printf("Messages Sent: %d -> Messages Received %d \n", sentMessages.size(), receivedMessages.size());
         return ok;
     }
 
     private List<Message> mapSentMessagesToMessages(List<User> users) {
         List<Message> messages = new ArrayList<>();
         for (int i = 0; i < users.size(); i++) {
-            List<MessageSending> userSent = users.get(i).getSentMessages().getAllSentMessages();
+            List<OutputMessage> userSent = users.get(i).getSentMessages().getAllSentMessages();
             for (int j = 0; j < userSent.size(); j++) {
-                MessageSending messageSending = userSent.get(j);
+                OutputMessage messageSending = userSent.get(j);
                 messages.add(new Message(users.get(i).getName(), messageSending.getTo(), messageSending.getMessage()));
             }
         }
@@ -154,9 +181,9 @@ public class SocketTesting {
     private List<Message> mapReceivedMessagesToMessages(List<User> users) {
         List<Message> messages = new ArrayList<>();
         for (int i = 0; i < users.size(); i++) {
-            List<MessageReceiving> userReceived = users.get(i).getInbox().getAllMessages();
+            List<InputMessage> userReceived = users.get(i).getInbox().getAllMessages();
             for (int j = 0; j < userReceived.size(); j++) {
-                MessageReceiving messageReceive = userReceived.get(j);
+                InputMessage messageReceive = userReceived.get(j);
                 messages.add(new Message(messageReceive.getFrom(), users.get(i).getName(), messageReceive.getMessage()));
             }
         }

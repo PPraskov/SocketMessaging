@@ -2,10 +2,12 @@ package messaging;
 
 import messaging.authentication.ActiveUsersGetter;
 import messaging.authentication.AuthenticationManager;
+import messaging.authentication.User;
+import messaging.maintenance.MemoryMonitor;
+import messaging.messages.MessageQueue;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 
 class SocketInputListener extends Thread {
@@ -15,7 +17,6 @@ class SocketInputListener extends Thread {
 
     SocketInputListener(MemoryMonitor monitor) {
         this.setDaemon(true);
-        this.setPriority(9);
         this.monitor = monitor;
         this.toRun = true;
     }
@@ -27,14 +28,13 @@ class SocketInputListener extends Thread {
         while (this.toRun) {
             this.monitor.checkForLockLock();
             Map<String, User> activeUsers = activeUsersGetter.getActiveUsers();
+            InputProcessor processor = InputProcessor.getInputProcessor();
             for (User user : activeUsers.values()
             ) {
                 try {
                     InputStream inputStream = user.getSocket().getInputStream();
                     if (inputStream.available() > 0) {
-                        InputProcessor processor = InputProcessor.getInputProcessor();
-                        List<Message> messages = processor.mapMessage(user.getSocket());
-                        queue.addAllMessages(messages);
+                        processor.wrapToMessage(user.getSocket());
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

@@ -1,4 +1,4 @@
-package messaging;
+package messaging.authentication;
 
 import java.net.Socket;
 

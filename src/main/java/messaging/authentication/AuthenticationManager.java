@@ -1,7 +1,5 @@
 package messaging.authentication;
 
-import messaging.User;
-
 import java.net.Socket;
 import java.util.Map;
 
@@ -64,5 +62,10 @@ public class AuthenticationManager implements ActiveUsersGetter {
     public User getUser(String username) {
         ActiveUserHolder userHolder = ActiveUserHolder.getUserHolder();
         return userHolder.getUser(username);
+    }
+
+    @Override
+    public boolean isUserActive(String username) {
+       return ActiveUserHolder.getUserHolder().checkIfUserPresent(username);
     }
 }

@@ -1,23 +1,23 @@
 package client;
 
+import client.messages.OutputMessage;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class SentMessages {
 
-    private final List<MessageSending> sent;
+    private final List<OutputMessage> sent;
 
     SentMessages() {
         sent = new ArrayList<>();
     }
 
-    void addMessage(MessageSending messageSending){
+    void addMessage(OutputMessage messageSending){
         sent.add(messageSending);
     }
 
-    public List<MessageSending> getAllSentMessages() {
+    public List<OutputMessage> getAllSentMessages() {
         return sent;
     }
 }

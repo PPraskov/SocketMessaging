@@ -1,5 +1,9 @@
 package messaging;
 
+import messaging.maintenance.MemoryMonitor;
+import messaging.messages.AbstractMessage;
+import messaging.messages.MessageQueue;
+
 class MessageSender extends Thread {
 
     private boolean toRun;
@@ -7,7 +11,6 @@ class MessageSender extends Thread {
 
     MessageSender(MemoryMonitor monitor){
         this.setDaemon(true);
-        this.setPriority(9);
         this.monitor = monitor;
         this.toRun = true;
     }
@@ -17,8 +20,8 @@ class MessageSender extends Thread {
         MessageQueue queue = MessageQueue.getQueue();
         while (toRun){
             this.monitor.checkForLockLock();
-            Message message = queue.getMessage();
-            OutputProcessor.getProcessor().sendMessage(message);
+            AbstractMessage message = queue.getMessage();
+            OutputProcessor.getProcessor().processAndSendMessage(message);
 
         }
     }

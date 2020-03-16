@@ -1,7 +1,5 @@
 package messaging.authentication;
 
-import messaging.User;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,6 +53,9 @@ class ActiveUserHolder {
     }
 
     boolean checkIfUserPresent(String username) {
+        if (activeUsers.isEmpty()){
+            return false;
+        }
         return activeUsers.containsKey(username);
     }
 

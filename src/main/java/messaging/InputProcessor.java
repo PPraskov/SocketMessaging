@@ -1,14 +1,16 @@
 package messaging;
 
-import messaging.authentication.AuthenticationManager;
-import messaging.exception.UnauthorizedUser;
-import messaging.exception.IllegalMessage;
+import messaging.constants.MessageConstants;
 import messaging.exception.UnrecognizedMessage;
+import messaging.messages.AbstractMessage;
+import messaging.messages.MessageFactory;
+import messaging.messages.MessageQueue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.*;
+import java.util.Map;
 
 class InputProcessor {
     private static InputProcessor inputProcessor = null;
@@ -32,75 +34,82 @@ class InputProcessor {
     }
 
 
-    List<Message> mapMessage(Socket socket) {
-        List<Message> messages = new ArrayList<>();
+    void wrapToMessage(Socket socket) {
         try {
-            InputStream inputStream = socket.getInputStream();
-            while (inputStream.available() > 0) {
-                Map<Integer, byte[]> map = convertToMessage(
-                        MessageConstants.MESSAGE_MESSAGE_LENGTH,
-                        socket.getInputStream());
-                User user = new User(
-                        getPartFromMessage(MessageConstants.MESSAGE_FROM, map),
-                        getPartFromMessage(MessageConstants.MESSAGE_AUTH, map),
-                        socket);
-                AuthenticationManager authenticationManager = AuthenticationManager.getManager();
-                if (!authenticationManager.authenticate(user)) {
-                    throw new UnauthorizedUser(user.getUsername());
-                }
-                Message message = MessageFactory.getFactory().createMessage(
-                        user,
-                        getPartFromMessage(MessageConstants.MESSAGE_TO, map),
-                        map.get(MessageConstants.MESSAGE_MESSAGE));
-                messages.add(message);
-            }
-        } catch (IOException | IllegalMessage | UnauthorizedUser e) {
-            e.printStackTrace();
-        }
-        return messages;
-    }
-
-    String getPartFromMessage(int index, Map<Integer, byte[]> map) {
-        return convertToString(map.get(index));
-    }
-
-    Map<Integer, byte[]> convertToMessage(int i, InputStream inputStream) {
-        try {
-            return readInputStream(i, inputStream);
+            readInputStream(socket);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+//        try {
+//                Map<Integer, String> map = convertToMessage(
+//                        MessageConstants.MESSAGE_MESSAGE_LENGTH,
+//                        socket.getInputStream());
+//                User user = new User(
+//                        map.get(MessageConstants.MESSAGE_FROM),
+//                        map.get(MessageConstants.MESSAGE_AUTH),
+//                        socket);
+//                AuthenticationManager authenticationManager = AuthenticationManager.getManager();
+//                if (!authenticationManager.authenticate(user)) {
+//                    throw new UnauthorizedUser(user.getUsername());
+//                }
+//                if (!AuthenticationManager.getManager().isUserActive(map.get(MessageConstants.MESSAGE_TO))){
+//                    OutputMessageWriter writer = OutputMessageWriter.getWriter();
+//                    writer.flushMessage(user.getSocket().getOutputStream(),MessageConstants.USER_NOT_ACTIVE);
+//                }
+//                Message message = MessageFactory.getFactory().createMessage(
+//                        user,
+//                        map.get(MessageConstants.MESSAGE_TO),
+//                        map.get(MessageConstants.MESSAGE_MESSAGE),
+//                        map.get(MessageConstants.MESSAGE_DATETIME)
+//                );
+//                messages.add(message);
+//            }
+//        } catch (IOException | IllegalMessage | UnauthorizedUser e) {
+//            e.printStackTrace();
+//        }
+//        return messages;
     }
 
-    private String convertToString(byte[] arr) {
-        return new String(arr);
-    }
 
-    Map<Integer, byte[]> readInputStream(int length, InputStream inputStream) throws IOException {
-        Map<Integer, byte[]> map = new TreeMap<>();
-        for (int i = 0; i < length; i++) {
-            int inputLength = readMessageLength(inputStream);
+    void readInputStream(Socket socket) throws IOException {
+        InputStreamReader reader = new InputStreamReader(socket.getInputStream(), MessageConstants.ENCODING);
+        int messageLength = readMessageLength(reader);
+        String[] messageArr = new String[messageLength];
+        for (int i = 0; i < messageLength; i++) {
+            int inputLength = readMessageLength(reader);
             if (inputLength == 0) {
                 throw new UnrecognizedMessage();
             }
-            byte[] bytes = readInput(inputStream, inputLength);
-            map.put(i, bytes);
+            messageArr[i] = readInput(reader, inputLength);
         }
-        return map;
+        AbstractMessage message;
+        switch (messageLength) {
+            case MessageConstants.MESSAGE_TYPE_AUTHENTICATION:
+                message = MessageFactory.getFactory().createMessage(messageArr[0], messageArr[1], messageArr[2], socket);
+                break;
+            case MessageConstants.MESSAGE_TYPE_COMMAND:
+                message = MessageFactory.getFactory().createMessage(messageArr[0], messageArr[1], messageArr[2], messageArr[3], socket);
+                break;
+            case MessageConstants.MESSAGE_TYPE_CONTACT:
+                message = MessageFactory.getFactory().createMessage(messageArr[0], messageArr[1], messageArr[2], messageArr[3], messageArr[4], socket);
+                break;
+            default:
+                throw new UnrecognizedMessage();
+        }
+        MessageQueue.getQueue().addMessage(message);
     }
 
-    private byte[] readInput(InputStream inputStream, int messageLength) throws IOException {
-        byte[] bytes = new byte[messageLength];
-        inputStream.read(bytes);
-        return bytes;
+    private String readInput(InputStreamReader inputStream, int messageLength) throws IOException {
+        char[] chars = new char[messageLength];
+        inputStream.read(chars);
+        return new String(chars);
     }
 
-    private int readMessageLength(InputStream inputStream) throws IOException {
+    private int readMessageLength(InputStreamReader inputStreamReader) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         char c;
-        while (inputStream.available() > 0) {
-            c = (char) inputStream.read();
+        while (inputStreamReader.ready()) {
+            c = (char) inputStreamReader.read();
             if (Character.isDigit(c)) {
                 stringBuilder.append(c);
             } else {

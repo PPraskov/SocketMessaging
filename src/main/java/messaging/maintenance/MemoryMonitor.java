@@ -1,4 +1,4 @@
-package messaging;
+package messaging.maintenance;
 
 public class MemoryMonitor extends Thread {
 
@@ -43,7 +43,7 @@ public class MemoryMonitor extends Thread {
         return Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
     }
 
-    Object checkForLockLock() {
+    public Object checkForLockLock() {
         if (lockFlag) {
             synchronized (lock) {
                 try {

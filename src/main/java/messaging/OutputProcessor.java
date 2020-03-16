@@ -2,26 +2,28 @@ package messaging;
 
 import messaging.authentication.ActiveUsersGetter;
 import messaging.authentication.AuthenticationManager;
+import messaging.constants.MessageConstants;
+import messaging.messages.AbstractMessage;
+import messaging.messages.InformationMessage;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.net.Socket;
 
-class OutputProcessor{
+class OutputProcessor {
     private static OutputProcessor processor;
     private static volatile boolean alive = false;
-
-    private static String NO_USER_FOUND = "from = Messaging Server\nmessage = User not found!";
 
     static {
         processor = new OutputProcessor();
         alive = true;
     }
 
-    private OutputProcessor() {}
+    private OutputProcessor() {
+    }
 
     public static OutputProcessor getProcessor() {
         OutputProcessor outputProcessor;
-        if (!alive){
+        if (!alive) {
             createProcessor();
         }
         outputProcessor = processor;
@@ -33,26 +35,26 @@ class OutputProcessor{
         alive = true;
     }
 
-    void sendMessage(Message message) {
-        String receiverStr = message.getReceiver();
-        ActiveUsersGetter usersGetter = AuthenticationManager.getManager();
-        User receiver = usersGetter.getUser(receiverStr);
+    void sendMessage(AbstractMessage message) {
         try {
             OutputMessageWriter writer = OutputMessageWriter.getWriter();
-            OutputStream outputStream;
-            String messageStr;
-            if (receiver == null){
-                outputStream = message.getSender().getSocket().getOutputStream();
-                messageStr = String.format("%d;%s",NO_USER_FOUND.getBytes().length,NO_USER_FOUND);
-                writer.flushMessage(outputStream,messageStr);
+            Socket sendTo;
+            ActiveUsersGetter manager = AuthenticationManager.getManager();
+            if (!manager.isUserActive(message.getReceiver())){
+                sendTo = message.getUser().getSocket();
+                message = new InformationMessage(MessageConstants.NO_USER_FOUND,message.getDateTimeAsString(),message.getSocket());
+            }else {
+                sendTo = manager.getUser(message.getReceiver()).getSocket();
             }
-            else {
-                outputStream = receiver.getSocket().getOutputStream();
-                writer.flushMessage(outputStream,message.convertToByteArr());
-            }
+            writer.flushMessage(sendTo.getOutputStream(), message.convertMessage());
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void processAndSendMessage(AbstractMessage message) {
+        message.authenticateUser();
+        sendMessage(message);
     }
 }

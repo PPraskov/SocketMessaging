@@ -1,5 +1,8 @@
 package messaging;
 
+import messaging.constants.ServerConstants;
+import messaging.maintenance.MemoryMonitor;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,14 +21,14 @@ public class MessagingManager {
 
     public void initializeAndStart() {
         try {
-            this.serverSocket = new ServerSocket(3600);
+            this.serverSocket = new ServerSocket(ServerConstants.PORT);
             toRun = true;
             this.monitor = new MemoryMonitor();
             this.initialSocketAuthentication = new InitialAuthentication();
             this.monitor.start();
             execute();
         } catch (IOException e) {
-            System.out.println("Messaging initialization problem");
+            System.out.println(ServerConstants.INITIALIZATION_PROBLEM);
             e.printStackTrace();
         }
     }
@@ -36,10 +39,9 @@ public class MessagingManager {
             this.sender = new MessageSender(this.monitor);
             this.inputListener.start();
             this.sender.start();
-            System.out.println("App is running!");
             while (this.toRun) {
                 Socket socket = this.serverSocket.accept();
-                socket.setSoTimeout(1000);
+                socket.setSoTimeout(ServerConstants.TIMEOUT);
                 this.initialSocketAuthentication.authenticateSocket(socket);
                 this.monitor.checkForLockLock();
             }
