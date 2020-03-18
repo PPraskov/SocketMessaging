@@ -1,4 +1,4 @@
-package messaging.util;
+package messaging.messages.queue;
 
 import java.util.ArrayDeque;
 import java.util.List;
@@ -14,38 +14,36 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class MyCustomQueue<T> {
 
     private final BlockingQueue<T> queue;
-    private final Lock lock;
-    private final Condition empty;
-    private volatile int added = 0;
-    private volatile int taken = 0;
+//    private final Lock lock;
+//    private final Condition empty;
+//    private volatile int added = 0;
+//    private volatile int taken = 0;
 
     public MyCustomQueue() {
         this.queue = new ArrayBlockingQueue<>(1000);
-        this.lock = new ReentrantLock();
-        empty = this.lock.newCondition();
+//        this.lock = new ReentrantLock();
+//        empty = this.lock.newCondition();
 
     }
 
     public void add(T element) {
-        try {
-            lock.lock();
-            queue.add(element);
-            empty.signal();
-        } finally {
-            lock.unlock();
-        }
+        queue.offer(element);
     }
 
     public T poll() {
-        try {
-            lock.lock();
-            while (queue.isEmpty()) {
-                empty.awaitUninterruptibly();
+        T result = null;
+//        try {
+        do {
+            try {
+                result = queue.poll(100L, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            return queue.poll();
-        } finally {
-            lock.unlock();
-        }
+        } while (result == null);
+//        } finally {
+//            lock.unlock();
+//        }
+        return result;
     }
 
 //    private boolean checkIfEmpty() {

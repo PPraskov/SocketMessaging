@@ -64,6 +64,9 @@ class ActiveUserHolder {
     }
 
     User getUser(String username) {
+        if (username == null){
+            return null;
+        }
         if (checkIfUserPresent(username)) {
             return activeUsers.get(username);
         }

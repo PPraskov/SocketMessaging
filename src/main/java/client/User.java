@@ -7,8 +7,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 
 public class User {
-
+    private String id;
     private final String name;
+    private final String password;
     private final Object authCondition;
     private final Inbox inbox;
     private final SentMessages sentMessages;
@@ -17,8 +18,9 @@ public class User {
     private String auth;
     private Socket socket;
 
-    public User(String name) throws IOException {
+    public User(String name,String password) throws IOException {
         this.name = name;
+        this.password = password;
         try {
             this.socket = new Socket(ServerConstants.ADDRESS, ServerConstants.PORT);
         } catch (IOException e) {
@@ -38,9 +40,20 @@ public class User {
         this.messageListener.waitForAuthentication();
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public String getAuth() {

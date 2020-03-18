@@ -2,6 +2,8 @@ package messaging;
 
 import messaging.constants.ServerConstants;
 import messaging.maintenance.MemoryMonitor;
+import messaging.persistence.PersistenceManager;
+import messaging.persistence.PersistenceWorker;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -14,6 +16,7 @@ public class MessagingManager {
     private SocketInputListener inputListener;
     private MessageSender sender;
     private MemoryMonitor monitor;
+    private PersistenceWorker persistenceWorker;
 
     public MessagingManager() {
     }
@@ -23,7 +26,9 @@ public class MessagingManager {
             this.serverSocket = new ServerSocket(ServerConstants.PORT);
             toRun = true;
             this.monitor = new MemoryMonitor();
-            this.monitor.start();
+            this.persistenceWorker = new PersistenceWorker();
+            this.persistenceWorker.start();
+//            this.monitor.start();
             execute();
         } catch (IOException e) {
             System.out.println(ServerConstants.INITIALIZATION_PROBLEM);
@@ -54,6 +59,7 @@ public class MessagingManager {
             this.toRun = false;
             this.inputListener.stopRunning();
             this.sender.stopRunning();
+            this.persistenceWorker.stopRunning();
             this.serverSocket.close();
         } catch (IOException e) {
             System.out.println("Server socket is closed!");

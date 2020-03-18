@@ -7,12 +7,19 @@ import java.net.Socket;
 public class InformationMessage extends AbstractMessage {
 
     public InformationMessage(String message, String dateTimeAsString, Socket socket) {
-        super(null, null,null, message, dateTimeAsString, socket);
+        super(null, null, null,null, message, dateTimeAsString, socket);
+    }
+
+    InformationMessage() {
     }
 
     @Override
     public String convertMessage() {
         return MessageConverter.getMessageConverter()
-                .convertMessage(MessageConstants.MESSAGE_SERVER, getMessage(), getDateTimeAsString());
+                .convertMessage(
+                        "",
+                        MessageConstants.MESSAGE_SERVER,
+                        getMessage(),
+                        getDateTimeAsString());
     }
 }

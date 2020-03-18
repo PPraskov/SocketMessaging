@@ -33,7 +33,7 @@ public class AuthenticationManager implements ActiveUsersGetter {
         return authToken.equals(userToken);
     }
 
-    public User generateTokenForNewUser(String username, Socket socket) {
+    public User generateTokenForNewUser(String id,String username, String password, Socket socket) {
         TokenHolder tokenHolder = TokenHolder.getTokenHolder();
         TokenGenerator generator = TokenGenerator.getGenerator();
         String token;
@@ -41,7 +41,8 @@ public class AuthenticationManager implements ActiveUsersGetter {
            token = generator.generateAuthToken();
         }while (tokenHolder.checkIfTokenIsPresent(token));
         tokenHolder.addToken(username,token);
-        User user = new User(username, token, socket);
+        User user = new User(username,password, token, socket);
+        user.setId(id);
         ActiveUserHolder userHolder = ActiveUserHolder.getUserHolder();
         userHolder.addUser(user);
         return user;
@@ -65,7 +66,10 @@ public class AuthenticationManager implements ActiveUsersGetter {
     }
 
     @Override
-    public boolean isUserActive(String username) {
-       return ActiveUserHolder.getUserHolder().checkIfUserPresent(username);
+    public boolean isUserActive(User user) {
+        if (user == null){
+            return false;
+        }
+       return ActiveUserHolder.getUserHolder().checkIfUserPresent(user.getUsername());
     }
 }

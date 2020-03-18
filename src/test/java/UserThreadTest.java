@@ -61,7 +61,8 @@ public class UserThreadTest extends Thread {
 
     private void initialize() throws IOException {
         UsernameGenerator usernameGenerator = new UsernameGenerator();
-        this.user = new User(usernameGenerator.getUsername());
+        String username = usernameGenerator.getUsername();
+        this.user = new User(username,username);
         this.usernames = usernameGenerator.getAll();
         try {
             Thread.sleep(400);

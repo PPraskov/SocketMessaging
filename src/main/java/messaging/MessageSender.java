@@ -2,7 +2,7 @@ package messaging;
 
 import messaging.maintenance.MemoryMonitor;
 import messaging.messages.AbstractMessage;
-import messaging.messages.MessageQueue;
+import messaging.messages.queue.OutputQueue;
 
 class MessageSender extends Thread {
 
@@ -18,7 +18,7 @@ class MessageSender extends Thread {
 
     @Override
     public void run() {
-        MessageQueue queue = MessageQueue.getQueue();
+        OutputQueue queue = OutputQueue.getQueue();
         while (toRun){
             this.monitor.checkForLockLock();
             AbstractMessage message = queue.getMessage();

@@ -4,8 +4,8 @@ public class MessageReceiving extends InputMessage {
 
     public MessageReceiving(String from, String message) {
         super();
-        this.setFrom(from);
-        this.setMessage(message);
+        setFrom(from);
+        setMessage(message);
     }
 
     @Override

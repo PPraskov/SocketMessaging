@@ -48,21 +48,21 @@ public class SocketTesting {
     public void testTwoGuysChatting() {
         boolean passed = false;
         try {
-            User user1 = new User("Papi");
-            User user2 = new User("Nick");
+            User user1 = new User("Papi","passPapi");
+            User user2 = new User("Nick","passNick");
             String messageToFirst = "testTo" + user1.getName();
             String messageToSecond = "TestTo" + user2.getName();
             user1.sendMessage(user2.getName(), messageToSecond);
             user2.sendMessage(user1.getName(), messageToFirst);
-            List<InputMessage> user2Inbox = user2.getInbox().getAllMessages();
-            List<InputMessage> user1Inbox = user1.getInbox().getAllMessages();
+            InputMessage user2Inbox = user2.getInbox().getMessage();
+            InputMessage user1Inbox = user1.getInbox().getMessage();
             MessageReceiving testFromFirst = new MessageReceiving(user1.getName(), messageToSecond);
             MessageReceiving testFromSecond = new MessageReceiving(user2.getName(), messageToFirst);
             Thread.sleep(1000);
             user1.stopListening();
             user2.stopListening();
 
-            if (user2Inbox.get(0).equals(testFromFirst) && user1Inbox.get(0).equals(testFromSecond)) {
+            if (user2Inbox.equals(testFromFirst) && user1Inbox.equals(testFromSecond)) {
                 passed = true;
             }
         } catch (Exception e) {
@@ -74,7 +74,7 @@ public class SocketTesting {
     @Test
     public void otherGuyNotActive() {
         try {
-            User user1 = new User("Bumba");
+            User user1 = new User("Bumba","bumba");
             user1.sendMessage("nonExistent", "do you even exist?");
             List<InputMessage> user1Inbox = user1.getInbox().getAllMessages();
             MessageReceiving messageReceivingTest = new MessageReceiving("Messaging Server", "User not found!");
@@ -106,7 +106,7 @@ public class SocketTesting {
             u.join();
             users.add(u.getUser());
         }
-        Thread.sleep(500);
+        Thread.sleep(30000);
         users.stream().forEach(u->u.stopListening());
         Assert.assertEquals(true, checkMessages(users));
     }

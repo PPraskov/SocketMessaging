@@ -45,10 +45,11 @@ public class InputMessageListener extends Thread {
                 }
             }
             String[] message = receiveMessage();
-            if (!message[0].equals(this.user.getName())){
+            if (!message[1].equals(this.user.getName())){
                 throw new AuthorizationProblem(AuthorizationProblem.WRONG_USERNAME_RECEIVED);
             }
-            this.user.setAuth(message[1]);
+            this.user.setId(message[0]);
+            this.user.setAuth(message[2]);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -58,7 +59,9 @@ public class InputMessageListener extends Thread {
     public void receiveAndAddMessages() throws IOException {
         while (reader.ready()) {
             String[] stringArr = receiveMessage();
-            MessageReceiving message = new MessageReceiving(stringArr[0], stringArr[1]);
+            MessageReceiving message = new MessageReceiving(stringArr[1], stringArr[2]);
+            message.setId(stringArr[0]);
+            message.setDateTimeAsString(stringArr[3]);
             this.user.getInbox().addMessage(message);
         }
     }

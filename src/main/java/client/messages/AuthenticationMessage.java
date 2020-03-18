@@ -8,10 +8,15 @@ public class AuthenticationMessage extends OutputMessage {
 
    public AuthenticationMessage(User user) {
         setFrom(user.getName());
+        setPassword(user.getPassword());
     }
 
     @Override
     public String convertMessage() {
-        return MessageConverter.getMessageConverter().convertMessage(getFrom(), MessageConstants.AUTHENTICATION_REQUEST_MESSAGE,getAndSetTime());
+        return MessageConverter.getMessageConverter().convertMessage(
+                getFrom(),
+                getPassword(),
+                MessageConstants.AUTHENTICATION_REQUEST_MESSAGE,
+                getAndSetTime());
     }
 }

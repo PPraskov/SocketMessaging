@@ -8,5 +8,5 @@ public interface ActiveUsersGetter {
 
     User getUser(String username);
 
-    boolean isUserActive(String username);
+    boolean isUserActive(User username);
 }

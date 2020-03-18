@@ -2,8 +2,10 @@ package messaging;
 
 import messaging.authentication.ActiveUsersGetter;
 import messaging.authentication.AuthenticationManager;
+import messaging.authentication.User;
 import messaging.constants.MessageConstants;
 import messaging.messages.AbstractMessage;
+import messaging.messages.AuthenticationMessage;
 import messaging.messages.InformationMessage;
 
 import java.io.IOException;
@@ -40,11 +42,11 @@ class OutputProcessor {
             OutputMessageWriter writer = OutputMessageWriter.getWriter();
             Socket sendTo;
             ActiveUsersGetter manager = AuthenticationManager.getManager();
-            if (!manager.isUserActive(message.getReceiver())){
-                sendTo = message.getUser().getSocket();
-                message = new InformationMessage(MessageConstants.NO_USER_FOUND,message.getDateTimeAsString(),message.getSocket());
-            }else {
-                sendTo = manager.getUser(message.getReceiver()).getSocket();
+            if (!manager.isUserActive(message.getReceiver())) {
+                sendTo = message.getSender().getSocket();
+                message = new InformationMessage(MessageConstants.NO_USER_FOUND, message.getDateTimeAsString(), sendTo);
+            } else {
+                sendTo = manager.getUser(message.getReceiver().getUsername()).getSocket();
             }
             writer.flushMessage(sendTo.getOutputStream(), message.convertMessage());
 
@@ -54,7 +56,6 @@ class OutputProcessor {
     }
 
     public void processAndSendMessage(AbstractMessage message) {
-        message.authenticateUser();
         sendMessage(message);
     }
 }

@@ -4,13 +4,11 @@ import messaging.constants.MessageConstants;
 import messaging.exception.UnrecognizedMessage;
 import messaging.messages.AbstractMessage;
 import messaging.messages.MessageFactory;
-import messaging.messages.MessageQueue;
+import messaging.messages.queue.InputQueue;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.Map;
 
 class InputProcessor {
     private static InputProcessor inputProcessor = null;
@@ -85,18 +83,36 @@ class InputProcessor {
         AbstractMessage message;
         switch (messageLength) {
             case MessageConstants.MESSAGE_TYPE_AUTHENTICATION:
-                message = MessageFactory.getFactory().createMessage(messageArr[0], messageArr[1], messageArr[2], socket);
+                message = MessageFactory.getFactory().createMessage(
+                        messageArr[0],
+                        messageArr[1],
+                        messageArr[2],
+                        messageArr[3],
+                        socket);
                 break;
             case MessageConstants.MESSAGE_TYPE_COMMAND:
-                message = MessageFactory.getFactory().createMessage(messageArr[0], messageArr[1], messageArr[2], messageArr[3], socket);
+                message = MessageFactory.getFactory().createMessage(
+                        messageArr[0],
+                        messageArr[1],
+                        messageArr[2],
+                        messageArr[3],
+                        messageArr[4],
+                        socket);
                 break;
             case MessageConstants.MESSAGE_TYPE_CONTACT:
-                message = MessageFactory.getFactory().createMessage(messageArr[0], messageArr[1], messageArr[2], messageArr[3], messageArr[4], socket);
+                message = MessageFactory.getFactory().createMessage(
+                        messageArr[0],
+                        messageArr[1],
+                        messageArr[2],
+                        messageArr[3],
+                        messageArr[4],
+                        messageArr[5],
+                        socket);
                 break;
             default:
                 throw new UnrecognizedMessage();
         }
-        MessageQueue.getQueue().addMessage(message);
+        InputQueue.getQueue().addMessage(message);
     }
 
     private String readInput(InputStreamReader inputStream, int messageLength) throws IOException {

@@ -4,7 +4,7 @@ import messaging.authentication.ActiveUsersGetter;
 import messaging.authentication.AuthenticationManager;
 import messaging.authentication.User;
 import messaging.maintenance.MemoryMonitor;
-import messaging.messages.MessageQueue;
+import messaging.messages.queue.OutputQueue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +25,7 @@ class SocketInputListener extends Thread {
     @Override
     public void run() {
         ActiveUsersGetter activeUsersGetter = AuthenticationManager.getManager();
-        MessageQueue queue = MessageQueue.getQueue();
+        OutputQueue queue = OutputQueue.getQueue();
         while (this.toRun) {
             this.monitor.checkForLockLock();
             Map<String, User> activeUsers = activeUsersGetter.getActiveUsers();

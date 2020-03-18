@@ -8,12 +8,14 @@ public class CommandMessage extends AbstractMessage {
 
     private State executionState;
 
-    public CommandMessage(String username, String authenticationToken, String command, String dateTimeAsString, Socket socket) {
-        super(username, authenticationToken, null, command, dateTimeAsString, socket);
+    CommandMessage(String username,String password, String authenticationToken, String command, String dateTimeAsString, Socket socket) {
+        super(username,password, authenticationToken, null, command, dateTimeAsString, socket);
         this.executionState = State.PENDING;
     }
 
+    CommandMessage(){
 
+    }
     public String getCommand() {
         return super.getMessage();
     }
